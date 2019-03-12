@@ -2,6 +2,7 @@ package mg.studio.myapplication;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -121,7 +122,8 @@ public class Register extends AppCompatActivity {
         pDialog.setMessage("Registering ...");
         if (!pDialog.isShowing()) pDialog.show();
         //Todo: Need to check Internet connection
-        new DownloadData().execute(name, email, password);
+        //new DownloadData().execute(name, email, password);
+        new offlineRegister().execute(name, email, password);
 
 
     }
@@ -267,6 +269,41 @@ public class Register extends AppCompatActivity {
             return feedback.FAIL;
         }
 
+    }
+
+    class offlineRegister extends AsyncTask<String, Void, Boolean>{
+        @Override
+        protected Boolean doInBackground(String... strings) {
+            String username = inputFullName.getText().toString().trim();
+            String useremail = inputEmail.getText().toString().trim();
+            String userpwd = inputPassword.getText().toString().trim();
+
+            if(username.isEmpty() || useremail.isEmpty() || userpwd.isEmpty())
+                return false;
+
+            SharedPreferences pref = getSharedPreferences(useremail+"info", MODE_PRIVATE);
+
+            String getname = pref.getString("username", "");
+            if(getname.isEmpty()){
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString("username", username);
+                editor.putString("useremail", useremail);
+                editor.putString("userpassword", userpwd);
+                editor.apply();
+                return true;
+            }else return false;
+
+
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if(result){
+                Toast.makeText(Register.this, "Register Successfully", Toast.LENGTH_SHORT).show();
+            }
+            else
+                Toast.makeText(Register.this, "Register Failed", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }

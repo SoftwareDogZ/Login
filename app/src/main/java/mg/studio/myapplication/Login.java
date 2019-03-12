@@ -3,6 +3,7 @@ package mg.studio.myapplication;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -120,7 +121,8 @@ public class Login extends AppCompatActivity {
 
             //Todo: need to check weather the user has Internet before attempting checking the data
             // Start fetching the data from the Internet
-            new OnlineCredentialValidation().execute(email,password);
+            //new OnlineCredentialValidation().execute(email,password);
+            new offlineCredentialValidation().execute(email, password);
 
 
         } else {
@@ -300,5 +302,34 @@ public class Login extends AppCompatActivity {
             return feedback.FAIL;
         }
 
+    }
+
+    class offlineCredentialValidation extends AsyncTask<String, Void, Boolean>{
+        @Override
+        protected Boolean doInBackground(String... strings) {
+            //Read data from the SharePreferences file
+            //and judge whether the user login successfully
+            String useremail = inputEmail.getText().toString().trim();
+            String userpwd = inputPassword.getText().toString().trim();
+
+            if(useremail.isEmpty() || userpwd.isEmpty())
+                return false;
+
+            SharedPreferences pref = getSharedPreferences(useremail+"info", MODE_PRIVATE);
+
+            String getpwd = pref.getString("userpassword", "");
+            if(getpwd.isEmpty() || !getpwd.equals(userpwd)){
+                return false;
+            }else return true;
+
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if(result)
+                Toast.makeText(Login.this, "Login Successfully", Toast.LENGTH_SHORT).show();
+            else
+                Toast.makeText(Login.this, "Login Failed", Toast.LENGTH_SHORT).show();
+        }
     }
 }
